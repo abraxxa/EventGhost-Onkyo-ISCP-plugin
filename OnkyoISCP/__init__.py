@@ -14,9 +14,10 @@ class OnkyoISCP(eg.PluginBase):
     def __init__(self):
         self.AddAction(SendCommand)
 
-    def __start__(self, ip, port):
+    def __start__(self, ip, port, timeout):
         self.ip = ip
         self.port = int(port)
+        self.timeout = float(timeout)
         self.socket = socket.socket()
 	self.Connect()
 
@@ -27,23 +28,30 @@ class OnkyoISCP(eg.PluginBase):
         s = self.socket
 	ip = self.ip
 	port = self.port
+	timeout = self.timeout
         try:
-	    s.connect((ip, port))
+	    s.create_connection((ip, port), timeout)
         except:
             print "OnkyoISCP failed to connect to " + ip + ":" + str(port)
         else:
             print "OnkyoISCP connected to " + ip + ":" + str(port)
         
 
-    def Configure(self, ip="", port=60128):
+    def Configure(self, ip="", port="60128", timeout="1"):
         panel = eg.ConfigPanel()
-        textControl = wx.TextCtrl(panel, -1, ip)
-        textControl2 = wx.TextCtrl(panel, -1, port)
+        wx_ip = wx.TextCtrl(panel, -1, ip)
+        wx_port = wx.TextCtrl(panel, -1, port)
+	wx_timeout = wx.TextCtrl(panel, -1, timeout)
         panel.sizer.Add(wx.StaticText(panel, -1, "IP address of Onkyo receiver"))
-        panel.sizer.Add(textControl)
-        panel.sizer.Add(textControl2)
+        panel.sizer.Add(wx_ip)
+        panel.sizer.Add(wx_port)
+        panel.sizer.Add(wx_timeout)
         while panel.Affirmed():
-            panel.SetResult(textControl.GetValue(), textControl2.GetValue())
+            panel.SetResult(
+                textControl.GetValue(),
+		textControl2.GetValue(),
+		wx_timeout.GetValue(),
+            )
 
 class SendCommand(eg.ActionBase):
 
