@@ -4,7 +4,7 @@ import socket
 eg.RegisterPlugin(
     name = "Onkyo ISCP",
     author = "Alexander Hartmaier",
-    version = "0.02",
+    version = "0.03",
     kind = "external",
     description = "Controls any Onkyo Receiver which supports the ISCP protocol."
 )
