@@ -70,7 +70,7 @@ class SendCommand(eg.ActionBase):
 		self.plugin.Connect()
                 s.send(line)
             except socket.error, msg:
-                print "Error " + msg
+                print "Error " + str(msg)
 
     def Configure(self, Command=""):
         panel = eg.ConfigPanel()
