@@ -30,7 +30,8 @@ class OnkyoISCP(eg.PluginBase):
 	port = self.port
 	timeout = self.timeout
         try:
-	    s.create_connection((ip, port), timeout)
+	    s.settimeout(timeout)
+	    s.connect((ip, port))
         except:
             print "OnkyoISCP failed to connect to " + ip + ":" + str(port)
         else:
