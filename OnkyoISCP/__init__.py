@@ -49,8 +49,8 @@ class OnkyoISCP(eg.PluginBase):
         panel.sizer.Add(wx_timeout)
         while panel.Affirmed():
             panel.SetResult(
-                textControl.GetValue(),
-		textControl2.GetValue(),
+                wx_ip.GetValue(),
+		wx_port.GetValue(),
 		wx_timeout.GetValue(),
             )
 
