@@ -18,20 +18,21 @@ class OnkyoISCP(eg.PluginBase):
         self.ip = ip
         self.port = int(port)
         self.timeout = float(timeout)
-        self.socket = socket.socket()
-	self.Connect()
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.settimeout(self.timeout)
+        self.socket = s
+        self.Connect()
 
     def __stop__(self):
     	self.socket.close()
 
     def Connect(self):
         s = self.socket
-	ip = self.ip
-	port = self.port
-	timeout = self.timeout
+        ip = self.ip
+        port = self.port
         try:
-	    s.settimeout(timeout)
-	    s.connect((ip, port))
+	        s.connect((ip, port))
         except:
             print "OnkyoISCP failed to connect to " + ip + ":" + str(port)
         else:
