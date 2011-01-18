@@ -9,7 +9,17 @@ eg.RegisterPlugin(
     description = "Controls any Onkyo Receiver which supports the ISCP protocol."
 )
 
+class Text:
+    tcpBox = "TCP/IP Settings"
+    ip = "IP:"
+    port = "Port:"
+    timeout = "Timeout:"
+    class SendCommand:
+        commandBox = "Command Settings"
+        command = "Code to send:"
+
 class OnkyoISCP(eg.PluginBase):
+    text = Text
 
     def __init__(self):
         self.AddAction(SendCommand)
@@ -40,19 +50,31 @@ class OnkyoISCP(eg.PluginBase):
         
 
     def Configure(self, ip="", port="60128", timeout="1"):
+        text = self.text
         panel = eg.ConfigPanel()
-        wx_ip = wx.TextCtrl(panel, -1, ip)
-        wx_port = wx.TextCtrl(panel, -1, port)
-	wx_timeout = wx.TextCtrl(panel, -1, timeout)
-        panel.sizer.Add(wx.StaticText(panel, -1, "IP address of Onkyo receiver"))
-        panel.sizer.Add(wx_ip)
-        panel.sizer.Add(wx_port)
-        panel.sizer.Add(wx_timeout)
+        wx_ip = panel.TextCtrl(ip)
+        wx_port = panel.SpinIntCtrl(port, max=65535)
+        wx_timeout = panel.TextCtrl(timeout)
+
+        st_ip = panel.StaticText(text.ip)
+        st_port = panel.StaticText(text.port)
+        st_timeout = panel.StaticText(text.timeout)
+        eg.EqualizeWidths((st_ip, st_port, st_timeout))
+
+        tcpBox = panel.BoxedGroup(
+            text.tcpBox,
+            (st_ip, wx_ip),
+            (st_port, wx_port),
+            (st_timeout, wx_timeout),
+        )
+
+        panel.sizer.Add(tcpBox, 0, wx.EXPAND)
+
         while panel.Affirmed():
             panel.SetResult(
                 wx_ip.GetValue(),
-		wx_port.GetValue(),
-		wx_timeout.GetValue(),
+                wx_port.GetValue(),
+                wx_timeout.GetValue(),
             )
 
 class SendCommand(eg.ActionBase):
@@ -64,19 +86,28 @@ class SendCommand(eg.ActionBase):
     	s = self.plugin.socket
         try:
             s.send(line)
-	    #data = s.recv(80)
+            #data = s.recv(80)
         except socket.error, msg:
             # try to reopen the socket on error
             # happens if no commands are sent for a long time
             try:
-		self.plugin.Connect()
+                self.plugin.Connect()
                 s.send(line)
             except socket.error, msg:
                 print "Error " + str(msg)
 
     def Configure(self, Command=""):
         panel = eg.ConfigPanel()
-        textControl = wx.TextCtrl(panel, -1, Command)
-        panel.sizer.Add(textControl)
+        text = self.text
+        st_command = panel.StaticText(text.command)
+        wx_command = panel.TextCtrl(Command)
+
+        commandBox = panel.BoxedGroup(
+            text.commandBox,
+            (st_command, wx_command)
+        )
+
+        panel.sizer.Add(commandBox, 0, wx.EXPAND)
+
         while panel.Affirmed():
-            panel.SetResult(textControl.GetValue())
+            panel.SetResult(wx_command.GetValue())
