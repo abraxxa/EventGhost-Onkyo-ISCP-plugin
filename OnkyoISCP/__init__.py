@@ -28,17 +28,17 @@ class OnkyoISCP(eg.PluginBase):
         self.ip = ip
         self.port = int(port)
         self.timeout = float(timeout)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.settimeout(self.timeout)
-        self.socket = s
         self.Connect()
 
     def __stop__(self):
     	self.socket.close()
 
     def Connect(self):
-        s = self.socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.settimeout(self.timeout)
+        self.socket = s
+
         ip = self.ip
         port = self.port
         try:
@@ -83,9 +83,8 @@ class SendCommand(eg.ActionBase):
         length = len(Command) + 1
         code = chr(length)
         line = "ISCP\x00\x00\x00\x10\x00\x00\x00" + code + "\x01\x00\x00\x00!1" + Command + "\x0D"
-    	s = self.plugin.socket
         try:
-            s.send(line)
+            self.plugin.socket.sendall(line)
             #data = s.recv(80)
         except socket.error, msg:
             print "Error sending command, retrying", msg
@@ -93,9 +92,9 @@ class SendCommand(eg.ActionBase):
             # happens if no commands are sent for a long time
             # and the tcp connection got closed because
             # e.g. the receiver was switched off and on again
+            self.plugin.Connect()
             try:
-                self.plugin.Connect()
-                s.send(line)
+                self.plugin.socket.sendall(line)
             except socket.error, msg:
                 print "Error sending command", msg
 
