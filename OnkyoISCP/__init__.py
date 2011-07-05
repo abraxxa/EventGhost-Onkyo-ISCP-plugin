@@ -42,11 +42,11 @@ class OnkyoISCP(eg.PluginBase):
         ip = self.ip
         port = self.port
         try:
-	        s.connect((ip, port))
-        except:
-            print "OnkyoISCP failed to connect to " + ip + ":" + str(port)
+            s.connect((ip, port))
+        except Exception as e:
+            print "Failed to connect to " + ip + ":" + str(port), e
         else:
-            print "OnkyoISCP connected to " + ip + ":" + str(port)
+            print "Connected to " + ip + ":" + str(port)
         
 
     def Configure(self, ip="", port="60128", timeout="1"):
@@ -88,13 +88,16 @@ class SendCommand(eg.ActionBase):
             s.send(line)
             #data = s.recv(80)
         except socket.error, msg:
+            print "Error sending command, retrying", msg
             # try to reopen the socket on error
             # happens if no commands are sent for a long time
+            # and the tcp connection got closed because
+            # e.g. the receiver was switched off and on again
             try:
                 self.plugin.Connect()
                 s.send(line)
             except socket.error, msg:
-                print "Error " + str(msg)
+                print "Error sending command", msg
 
     def Configure(self, Command=""):
         panel = eg.ConfigPanel()
