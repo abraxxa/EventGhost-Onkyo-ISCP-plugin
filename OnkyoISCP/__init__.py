@@ -1,9 +1,12 @@
 import eg
 import socket
+import select
+from time import sleep
+from threading import Event, Thread
 
 eg.RegisterPlugin(
     name = "Onkyo ISCP",
-    author = "Alexander Hartmaier",
+    author = "Alexander Hartmaier + Sem;colon",
     version = "0.05",
     kind = "external",
     guid = "{5B3B8AEB-08D7-4FD0-8BEE-8FE50C231E09}",
@@ -31,9 +34,36 @@ class OnkyoISCP(eg.PluginBase):
         self.port = int(port)
         self.timeout = float(timeout)
         self.Connect()
+        self.stopThreadEvent = Event()
+        thread = Thread(
+            target = self.Receive,
+        )
+        thread.start()
 
     def __stop__(self):
-    	self.socket.close()
+        self.stopThreadEvent.set()
+        self.socket.close()
+
+    def Receive(self):
+        while not self.stopThreadEvent.is_set():
+            try:
+                ready = select.select([self.socket], [], [])
+                if ready[0]:
+                    reply = self.socket.recv(1024)
+                    for i in range(0, 32, 1):
+                        reply = reply.replace(chr(i),"")
+                    if len(reply) <= 11 and "MVL" not in reply:
+                        reply = reply.replace("ISCP!1","")
+                        self.TriggerEvent(reply)
+                    elif len(reply) <= 11:
+                        reply = reply.replace("ISCP!1","")
+                        command = reply[:3]
+                        value   = reply[3:len(reply)]
+                        self.TriggerEvent(command, payload=value)
+            except:
+                print "OnkyoISCP ERROR"
+                self.stopThreadEvent.wait(3.0)
+        self.TriggerEvent("ThreadStopped!")
 
     def Connect(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -87,7 +117,7 @@ class SendCommand(eg.ActionBase):
         line = "ISCP\x00\x00\x00\x10\x00\x00\x00" + code + "\x01\x00\x00\x00!1" + Command + "\x0D"
         try:
             self.plugin.socket.sendall(line)
-            #data = s.recv(80)
+            sleep(0.1)
         except socket.error, msg:
             print "Error sending command, retrying", msg
             # try to reopen the socket on error
