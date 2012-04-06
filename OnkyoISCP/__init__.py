@@ -6,7 +6,9 @@ eg.RegisterPlugin(
     author = "Alexander Hartmaier",
     version = "0.05",
     kind = "external",
-    description = "Controls any Onkyo Receiver which supports the ISCP protocol."
+    guid = "{5B3B8AEB-08D7-4FD0-8BEE-8FE50C231E09}",
+    description = "Controls any Onkyo Receiver which supports the ISCP protocol.",
+    url = "http://www.eventghost.net/forum/viewtopic.php?f=10&t=2964",
 )
 
 class Text:
