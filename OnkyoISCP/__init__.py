@@ -3,6 +3,7 @@ import socket
 import select
 from time import sleep
 from threading import Event, Thread
+from struct import unpack
 
 eg.RegisterPlugin(
     name = "Onkyo ISCP",
@@ -48,20 +49,34 @@ class OnkyoISCP(eg.PluginBase):
         while not self.stopThreadEvent.is_set():
             try:
                 ready = select.select([self.socket], [], [])
+                # the first element of the returned list is a list of readable sockets
                 if ready[0]:
+                    # 1024 bytes should be enough for every received event
                     reply = self.socket.recv(1024)
-                    for i in range(0, 32, 1):
-                        reply = reply.replace(chr(i),"")
-                    if len(reply) <= 11 and "MVL" not in reply:
-                        reply = reply.replace("ISCP!1","")
-                        self.TriggerEvent(reply)
-                    elif len(reply) <= 11:
-                        reply = reply.replace("ISCP!1","")
-                        command = reply[:3]
-                        value   = reply[3:len(reply)]
-                        self.TriggerEvent(command, payload=value)
-            except:
-                print "OnkyoISCP ERROR"
+                    # unpack ISCP header
+                    header, headersize, datasize, version = unpack('!4sIIBxxx', reply[0:16])
+                    if header != "ISCP":
+                        print "Received packet not ISCP"
+                        return
+
+                    #print "Header: " + header
+                    #print "Header size: " + str(headersize)
+                    #print "Data size: " + str(datasize)
+                    #print "Version: " + str(version)
+
+                    # message ends in \x1aCRLF, is three chars shorter than data size
+                    messagesize = datasize - 3
+                    message = reply[16:16+messagesize]
+                    #print "Message: " + message
+
+                    # parse message
+                    #unit_type = message[1]
+                    #print "Unit type: " + unit_type
+                    command = message[2:5]
+                    parameter = message[5:messagesize]
+                    self.TriggerEvent(command, payload=parameter)
+            except Exception as e:
+                print "OnkyoISCP ERROR: ", e
                 self.stopThreadEvent.wait(3.0)
         self.TriggerEvent("ThreadStopped!")
 
