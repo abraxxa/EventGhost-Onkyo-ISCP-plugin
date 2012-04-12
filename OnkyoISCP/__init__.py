@@ -65,9 +65,9 @@ class OnkyoISCP(eg.PluginBase):
                     #print "Version: " + str(version)
 
                     # message ends in \x1aCRLF, is three chars shorter than data size
-                    messagesize = datasize - 3
-                    message = reply[16:16+messagesize]
+                    message = reply[16:16+datasize].rstrip('\x1a\r\n')
                     #print "Message: " + message
+                    messagesize = len(message)
 
                     # parse message
                     #unit_type = message[1]
