@@ -35,14 +35,11 @@ class OnkyoISCP(eg.PluginBase):
         self.port = int(port)
         self.timeout = float(timeout)
         self.Connect()
-        self.stopThreadEvent = Event()
-        thread = Thread(
-            target = self.Receive,
-        )
-        thread.start()
 
     def __stop__(self):
-        self.stopThreadEvent.set()
+	if hasattr(self, 'stopThreadEvent'):
+	    self.stopThreadEvent.set()
+
         self.socket.close()
 
     def Receive(self):
@@ -95,6 +92,11 @@ class OnkyoISCP(eg.PluginBase):
             print "Failed to connect to " + ip + ":" + str(port), e
         else:
             print "Connected to " + ip + ":" + str(port)
+	    self.stopThreadEvent = Event()
+	    thread = Thread(
+		target = self.Receive,
+	    )
+            thread.start()
         
 
     def Configure(self, ip="", port="60128", timeout="1"):
