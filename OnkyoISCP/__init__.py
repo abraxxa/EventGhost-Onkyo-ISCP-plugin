@@ -75,6 +75,7 @@ class OnkyoISCP(eg.PluginBase):
                     command = message[2:5]
                     parameter = message[5:messagesize]
                     self.TriggerEvent(command, payload=parameter)
+                    self.TriggerEvent(command + parameter)
             except Exception as e:
                 print "OnkyoISCP ERROR: ", e
                 self.stopThreadEvent.wait(3.0)
