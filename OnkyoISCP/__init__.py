@@ -85,7 +85,6 @@ class OnkyoISCP(eg.PluginBase):
                     self.TriggerEvent(command + parameter)
             except Exception as e:
                 self.PrintError("OnkyoISCP: " + str(e))
-        self.TriggerEvent("ThreadStopped!")
 
     def Connect(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
