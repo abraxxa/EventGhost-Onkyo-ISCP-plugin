@@ -55,9 +55,15 @@ class OnkyoISCP(eg.PluginBase):
                     # 1024 bytes should be enough for every received event
                     reply = self.socket.recv(1024)
                     # unpack ISCP header
-                    header, headersize, datasize, version = unpack('!4sIIBxxx', reply[0:16])
-                    if header != "ISCP":
+                    header, headersize, datasize, version = unpack('!4sIIBxxx',
+		            reply[0:self.headersize]
+			)
+
+                    if header != self.header:
                         print "Received packet not ISCP"
+                        return
+                    if version != self.version:
+                        print "ISCP version " + str(version) + " not supported"
                         return
 
                     #print "Header: " + header
@@ -65,14 +71,14 @@ class OnkyoISCP(eg.PluginBase):
                     #print "Data size: " + str(datasize)
                     #print "Version: " + str(version)
 
-                    # message ends in \x1aCRLF, is three chars shorter than data size
-                    message = reply[16:16+datasize].rstrip('\x1a\r\n')
+                    # message ends in EOL CR LF, is three chars shorter than data size
+                    message = reply[headersize:headersize+datasize].rstrip('\x1a\r\n')
                     #print "Message: " + message
                     messagesize = len(message)
 
                     # parse message
-                    #unit_type = message[1]
-                    #print "Unit type: " + unit_type
+                    #unittype = message[1]
+                    #print "Unit type: " + unittype
                     command = message[2:5]
                     parameter = message[5:messagesize]
                     self.TriggerEvent(command, payload=parameter)
