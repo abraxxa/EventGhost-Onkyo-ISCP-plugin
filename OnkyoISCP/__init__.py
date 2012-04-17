@@ -3,7 +3,7 @@ import socket
 import select
 from time import sleep
 from threading import Event, Thread
-from struct import unpack
+from struct import pack, unpack
 
 eg.RegisterPlugin(
     name = "Onkyo ISCP",
@@ -25,7 +25,11 @@ class Text:
         command = "Code to send:"
 
 class OnkyoISCP(eg.PluginBase):
-    text = Text
+    text       = Text
+    header     = 'ISCP'
+    headersize = 16
+    version    = 1
+    unittype   = 1 # receiver
 
     def __init__(self):
         self.AddAction(SendCommand)
@@ -130,9 +134,18 @@ class OnkyoISCP(eg.PluginBase):
 class SendCommand(eg.ActionBase):
 
     def __call__(self, Command):
-        length = len(Command) + 1
-        code = chr(length)
-        line = "ISCP\x00\x00\x00\x10\x00\x00\x00" + code + "\x01\x00\x00\x00!1" + Command + "\x0D"
+        message = '!' + str(self.plugin.unittype) + Command + '\x0d'
+        # unlike specified the datasize needs to include the headersize
+        # to make it work for some models (Integra DHC-9.9)
+        # while others (Onkyo PR-SC5507) work fine without it
+        # both work when the headersize is included
+        datasize = self.plugin.headersize + len(message)
+        line = pack('!4sIIBxxx',
+                self.plugin.header,
+                self.plugin.headersize,
+	        datasize,
+                self.plugin.version
+	    ) + message
         try:
             self.plugin.socket.sendall(line)
             sleep(0.1)
