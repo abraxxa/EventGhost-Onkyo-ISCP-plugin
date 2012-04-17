@@ -60,10 +60,10 @@ class OnkyoISCP(eg.PluginBase):
 			)
 
                     if header != self.header:
-                        print "Received packet not ISCP"
+                        self.PrintError("OnkyoISCP: Received packet not ISCP")
                         return
                     if version != self.version:
-                        print "ISCP version " + str(version) + " not supported"
+                        self.PrintError("OnkyoISCP: ISCP version " + str(version) + " not supported")
                         return
 
                     #print "Header: " + header
@@ -84,7 +84,7 @@ class OnkyoISCP(eg.PluginBase):
                     self.TriggerEvent(command, payload=parameter)
                     self.TriggerEvent(command + parameter)
             except Exception as e:
-                print "OnkyoISCP ERROR: ", e
+                self.PrintError("OnkyoISCP: " + str(e))
                 self.stopThreadEvent.wait(3.0)
         self.TriggerEvent("ThreadStopped!")
 
@@ -99,7 +99,7 @@ class OnkyoISCP(eg.PluginBase):
         try:
             s.connect((ip, port))
         except Exception as e:
-            print "Failed to connect to " + ip + ":" + str(port), e
+            self.PrintError("OnkyoISCP: Failed to connect to " + ip + ":" + str(port) + ": " + str(e))
         else:
             print "Connected to " + ip + ":" + str(port)
 	    self.stopThreadEvent = Event()
@@ -156,7 +156,7 @@ class SendCommand(eg.ActionBase):
             self.plugin.socket.sendall(line)
             sleep(0.1)
         except socket.error, msg:
-            print "Error sending command, retrying", msg
+            self.PrintError("OnkyoISCP: Error sending command, retrying: " + msg)
             # try to reopen the socket on error
             # happens if no commands are sent for a long time
             # and the tcp connection got closed because
@@ -165,7 +165,7 @@ class SendCommand(eg.ActionBase):
             try:
                 self.plugin.socket.sendall(line)
             except socket.error, msg:
-                print "Error sending command", msg
+                self.PrintError("OnkyoISCP: Error sending command: " + msg)
 
     def Configure(self, Command=""):
         panel = eg.ConfigPanel()
