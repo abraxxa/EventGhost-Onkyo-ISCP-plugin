@@ -8,7 +8,7 @@ from struct import pack, unpack
 eg.RegisterPlugin(
     name = "Onkyo ISCP",
     author = "Alexander Hartmaier + Sem;colon",
-    version = "0.05",
+    version = "0.06",
     kind = "external",
     guid = "{5B3B8AEB-08D7-4FD0-8BEE-8FE50C231E09}",
     description = "Controls any Onkyo Receiver which supports the ISCP protocol.",
