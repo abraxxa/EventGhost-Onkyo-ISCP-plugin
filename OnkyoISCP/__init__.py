@@ -154,7 +154,7 @@ class SendCommand(eg.ActionBase):
             self.plugin.socket.sendall(line)
             sleep(0.1)
         except socket.error, msg:
-            self.PrintError("OnkyoISCP: Error sending command, retrying: " + msg)
+            self.PrintError("OnkyoISCP: Error sending command, retrying: " + str(msg))
             # try to reopen the socket on error
             # happens if no commands are sent for a long time
             # and the tcp connection got closed because
@@ -163,7 +163,7 @@ class SendCommand(eg.ActionBase):
             try:
                 self.plugin.socket.sendall(line)
             except socket.error, msg:
-                self.PrintError("OnkyoISCP: Error sending command: " + msg)
+                self.PrintError("OnkyoISCP: Error sending command: " + str(msg))
 
     def Configure(self, Command=""):
         panel = eg.ConfigPanel()
