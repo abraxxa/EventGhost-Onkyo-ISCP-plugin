@@ -138,6 +138,7 @@ class OnkyoISCP(eg.PluginBase):
 class SendCommand(eg.ActionBase):
 
     def __call__(self, Command):
+    	Command = eg.ParseString(Command)
         message = '!' + str(self.plugin.unittype) + Command + '\x0d'
         # unlike specified the datasize needs to include the headersize
         # to make it work for some models (Integra DHC-9.9)
